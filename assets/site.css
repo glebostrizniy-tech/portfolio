@@ -6,3 +6,29 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
 
 .arrow{width:16px;height:16px;flex-shrink:0;display:inline-block;vertical-align:middle}.brand .arrow{width:19px;height:19px;margin-left:7px;color:var(--green)}.project-mark .arrow{width:27px;height:27px;margin-left:8px}.case-no .arrow{width:12px;height:12px}.experience-row h3 .arrow{width:13px;height:13px}.metric{min-width:0}
+
+/* Motion follows the existing quiet, tactile visual language. */
+.reveal-ready{opacity:0;transform:translateY(22px);transition:opacity .75s ease var(--reveal-delay,0ms),transform .75s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
+.reveal-ready.is-revealed{opacity:1;transform:translateY(0)}
+.orb{translate:var(--pointer-x,0px) var(--pointer-y,0px);transition:translate .7s cubic-bezier(.22,1,.36,1);animation:orb-float 8s ease-in-out infinite;animation-play-state:paused}
+.orb:before{animation:orbit-one 24s linear infinite;animation-play-state:paused}
+.orb:after{animation:orbit-two 30s linear infinite;animation-play-state:paused}
+.hero-art.is-in-view .orb,.hero-art.is-in-view .orb:before,.hero-art.is-in-view .orb:after{animation-play-state:running}
+.fabric-rolls i{animation:fabric-float 7s ease-in-out infinite;animation-play-state:paused}
+.fabric-rolls i:nth-child(2){animation-delay:-2.4s}.fabric-rolls i:nth-child(3){animation-delay:-4.8s}
+.textile.is-in-view .fabric-rolls i{animation-play-state:running}
+.motion-paused .hero-art .orb,.motion-paused .hero-art .orb:before,.motion-paused .hero-art .orb:after,.motion-paused .textile .fabric-rolls i{animation-play-state:paused}
+.button .arrow,.text-link .arrow,.brand .arrow,.contact-item .arrow{transition:transform .3s cubic-bezier(.22,1,.36,1)}
+.button:hover .arrow,.button:focus-visible .arrow,.text-link:hover .arrow,.text-link:focus-visible .arrow,.brand:hover .arrow,.contact-item a:hover .arrow{transform:translate(2px,-2px)}
+.header nav a{position:relative;padding-block:5px}.header nav a:after{content:"";position:absolute;bottom:0;left:0;width:100%;height:1px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .3s ease}
+.header nav a:hover:after,.header nav a:focus-visible:after{transform:scaleX(1)}
+.language button{transition:background .25s ease,color .25s ease}
+.case,.feature{transition:border-color .3s ease,box-shadow .3s ease,opacity .75s ease var(--reveal-delay,0ms),transform .75s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
+.service{transition:border-color .3s ease,opacity .75s ease var(--reveal-delay,0ms),transform .75s cubic-bezier(.22,1,.36,1) var(--reveal-delay,0ms)}
+@media(hover:hover) and (pointer:fine){.case.is-revealed:hover{transform:translateY(-5px);border-color:#a5b9a6;box-shadow:0 16px 35px #203b2e0a}.feature:hover,.feature:focus-within{border-color:#a5b9a6;box-shadow:0 16px 35px #203b2e0a}.service.is-revealed:hover{transform:translateY(-4px);border-color:#87a354}}
+@keyframes orb-float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+@keyframes orbit-one{from{transform:rotate(-35deg)}to{transform:rotate(325deg)}}
+@keyframes orbit-two{from{transform:rotate(35deg)}to{transform:rotate(-325deg)}}
+@keyframes fabric-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@media(max-width:600px){.reveal-ready{transform:translateY(14px)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}.reveal-ready{opacity:1;transform:none}.orb{translate:none}.case.is-revealed:hover,.service.is-revealed:hover,.button:hover,.arrow{transform:none!important}}

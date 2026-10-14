@@ -15,3 +15,7 @@ Open the page in your local browser. Styles live in `assets/site.css`; English a
 `index.html` includes an English HTML snapshot for search engines and visitors without JavaScript. When changing page content or structure in `site.js`, update that snapshot too. The script refreshes the content for the selected language on load.
 
 Verify both languages on desktop and mobile, check section anchors and contact links, and ensure the manifest's paths remain relative for GitHub Pages project hosting.
+
+## Motion
+
+Animations are implemented with CSS and IntersectionObserver in `assets/site.js`. Sections reveal once on scroll, artwork animates only while in view, and fine-pointer devices get a subtle pointer response on the hero. Observers and listeners are cleaned up when the language changes. Reduced-motion preferences are respected on load and when changed live; content remains visible without JavaScript. No animation libraries are required.

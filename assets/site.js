@@ -53,7 +53,85 @@ const copy = {
 
 const external = 'target="_blank" rel="noopener noreferrer"';
 const arrow = '<svg class="arrow" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 19 19 5M5 5h14v14"/></svg>';
+const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+let cleanupMotion = () => {};
+
+function setupMotion() {
+  // Content stays visible without JavaScript, observers or motion support.
+  if (motionPreference.matches || !('IntersectionObserver' in window)) return () => {};
+  const controller = new AbortController();
+  const options = { signal: controller.signal };
+  const targets = [...document.querySelectorAll('.hero > div:first-child > *, .hero-art, .hero-foot, .section-head, .feature, .case, .about-grid, .service, .experience-row, .contact')];
+  targets.forEach(element => {
+    const siblings = [...element.parentElement.children];
+    const stagger = element.matches('.service, .case, .hero > div:first-child > *') ? siblings.indexOf(element) % 4 : 0;
+    element.style.setProperty('--reveal-delay', `${stagger * 75}ms`);
+    element.classList.add('reveal-ready');
+  });
+  const reveal = element => element.classList.add('is-revealed');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        reveal(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.06 });
+  targets.forEach(element => observer.observe(element));
+  // Keyboard navigation must never focus invisible content.
+  document.querySelector('#main').addEventListener('focusin', event => {
+    const element = event.target.closest('.reveal-ready');
+    if (element) reveal(element);
+  }, options);
+
+  const artwork = [...document.querySelectorAll('.hero-art, .textile')];
+  const artworkObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => entry.target.classList.toggle('is-in-view', entry.isIntersecting));
+  });
+  artwork.forEach(element => artworkObserver.observe(element));
+  const pause = () => document.body.classList.toggle('motion-paused', document.hidden);
+  document.addEventListener('visibilitychange', pause, options);
+  pause();
+
+  const heroArt = document.querySelector('.hero-art');
+  let frame = 0;
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    heroArt.addEventListener('pointermove', event => {
+      if (frame) cancelAnimationFrame(frame);
+      const bounds = heroArt.getBoundingClientRect();
+      const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+      const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+      frame = requestAnimationFrame(() => {
+        heroArt.style.setProperty('--pointer-x', `${x * 16}px`);
+        heroArt.style.setProperty('--pointer-y', `${y * 16}px`);
+        frame = 0;
+      });
+    }, options);
+    heroArt.addEventListener('pointerleave', () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+      heroArt.style.setProperty('--pointer-x', '0px');
+      heroArt.style.setProperty('--pointer-y', '0px');
+    }, options);
+  }
+  return () => {
+    controller.abort();
+    observer.disconnect();
+    artworkObserver.disconnect();
+    cancelAnimationFrame(frame);
+    targets.forEach(element => {
+      element.classList.remove('reveal-ready', 'is-revealed');
+      element.style.removeProperty('--reveal-delay');
+    });
+    artwork.forEach(element => element.classList.remove('is-in-view'));
+    heroArt.style.removeProperty('--pointer-x');
+    heroArt.style.removeProperty('--pointer-y');
+    document.body.classList.remove('motion-paused');
+  };
+}
+
 function render(lang) {
+  cleanupMotion();
   const t = copy[lang];
   document.documentElement.lang = lang;
   document.title = `${t.name} — ${t.footer}`;
@@ -81,10 +159,15 @@ function render(lang) {
     <section class="section wrap" id="experience" aria-labelledby="experience-title"><div class="section-head"><div><p class="eyebrow">${t.expLabel}</p><h2 id="experience-title">${t.expTitle}</h2></div></div>${t.experience.map(e=>`<article class="experience-row"><time>${e[0]}</time><div><h3>${e[4]?`<a href="${e[4]}" ${external}>${e[1]} ${arrow}</a>`:e[1]}</h3><small>${e[2]}</small></div><p>${e[3]}</p></article>`).join('')}</section>
     <section class="contact wrap" id="contacts" aria-labelledby="contact-title"><div><p class="eyebrow">${t.contactLabel}</p><h2 id="contact-title">${t.contactTitle}</h2><p>${t.contactText}</p><a class="button" href="https://t.me/glebdigit" ${external}>${t.message}${arrow}</a></div><div class="contact-list"><div class="contact-item"><span>${t.email}</span><a href="mailto:glebostrizniy@bk.ru">glebostrizniy@bk.ru</a></div><div class="contact-item"><span>${t.phone}</span><a href="tel:+995555185293">+995555185293</a></div><div class="contact-item"><span>${t.place}</span><span>${t.location}</span></div><div class="contact-item"><span>LinkedIn</span><a href="https://www.linkedin.com/in/glebostrizhnyi/" ${external}>glebostrizhnyi ${arrow}</a></div><div class="languages">${t.languages}</div></div></section>`;
   document.querySelector('#footer').innerHTML = `<span>© ${new Date().getFullYear()} ${t.name} · ${t.footer}</span><a href="#">${t.back} ↑</a>`;
+  cleanupMotion = setupMotion();
 }
 let selected = 'en';
 try { if (localStorage.getItem('portfolio-language') === 'ru') selected = 'ru'; } catch { /* Storage can be unavailable in private browsing. */ }
 render(selected);
+motionPreference.addEventListener('change', () => {
+  cleanupMotion();
+  cleanupMotion = setupMotion();
+});
 document.querySelectorAll('[data-lang]').forEach(button => button.addEventListener('click', () => {
   selected = button.dataset.lang;
   render(selected);
